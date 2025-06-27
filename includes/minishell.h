@@ -6,7 +6,7 @@
 /*   By: dagwu <dagwu@student.42berlin.de>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/14 18:48:53 by dagwu             #+#    #+#             */
-/*   Updated: 2025/06/26 20:49:02 by daflynn          ###   ########.fr       */
+/*   Updated: 2025/06/27 17:24:41 by daflynn          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,18 +14,19 @@
 # define MINISHELL_H
 
 # include "../libft/libft.h"
+# include <errno.h>
 # include <fcntl.h>
 # include <math.h>
 # include <readline/history.h>
 # include <readline/readline.h>
 # include <signal.h>
+# include <stdbool.h>
 # include <stddef.h>
 # include <stdio.h>
 # include <stdlib.h>
+# include <string.h>
 # include <strings.h>
 # include <unistd.h>
-# include <errno.h>
-# include <string.h>
 
 typedef struct s_dat
 {
@@ -35,7 +36,7 @@ typedef struct s_dat
 	int				iter;
 	int				arg_count;
 	char			**vec_str;
-	const char		**env_str;
+	char			**env_str;
 }					t_dat;
 //
 typedef struct s_var
@@ -64,7 +65,7 @@ void				ft_set_up_sigactions(void);
 void				ft_new_export_node(t_dat *data, char *name, char *val);
 void				ft_export(t_dat *data, const char *assignment, char *name,
 						char *val);
-void				ft_unset(t_dat *data, const char *key);
+// void				ft_unset(t_dat *data, const char *key);
 void				ft_env(t_dat *data);
 void				ft_echo(t_dat *data);
 void				ft_exit(t_dat *data);
@@ -82,9 +83,10 @@ int					ft_isspace(char c);
 char				**copy_env(char **envp);
 void				free_env(char **env);
 void				ft_pwd(t_dat *data);
-void    ft_export_simple(t_dat *data, const char *assignment);
+void				ft_export_simple(t_dat *data, char *assignment);
+void				ft_export_with_update(t_dat *data, char *assignment);
+void				ft_unset(t_dat *data, char *var_name);
 
-//void version of exit
-void	ft_exit();
+// void version of exit deleted
 
 #endif

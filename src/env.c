@@ -11,6 +11,12 @@
 /* ************************************************************************** */
 #include "minishell.h"
 
+/*This function will simply print every
+string in env_string in the env_str 2d array
+line by line. It is important that env_str
+is in fact correctly defined to reference
+penv or a copy thereof before this function
+is called.*/
 void	ft_env(t_dat *data)
 {
 	int	i;

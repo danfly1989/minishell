@@ -44,7 +44,7 @@ int	main(int argc, char **argv, char **envp)
 	if (!my_env)
 		return (1); // handling alloc failure
 	// using data struct to test copied env
-	data.env_str = (const char **)my_env;
+	data.env_str = my_env;
 	t_arg echo_cmd, arg1, arg2, arg3;
 	// set up linked list: echo -n Hello World
 	data.arg = &echo_cmd;
@@ -74,12 +74,17 @@ int	main(int argc, char **argv, char **envp)
 	ft_printf("-----------end cd test----------\n");
 	// begin the export test
 	ft_printf("\n ---------export test begins------------\n");
-	ft_export_simple(&data, "FOO=bar");
+	ft_export_with_update(&data, "FOO=bar");
 	ft_env(&data);
 	ft_printf("-------end of export test-------------");
 	// end the export test
+	// begin unset test
+	ft_printf("\n---------begin unset test------------\n");
+	ft_unset(&data, "FOO");
+	ft_env(&data);
+	ft_printf("\nEnd unset test\n");
 	// free the copy of env variables
-	free_env((char **)data.env_str);
+	free_env(data.env_str);
 	// exit test. Also could be void
 	ft_printf("\n--------running exit--------");
 	ft_exit(&data);
