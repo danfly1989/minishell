@@ -21,7 +21,8 @@ static int	env_var_count(char **env)
 		count++;
 	return (count);
 }
-
+/*clear former variable and create new on in its stead with
+the same name (assignment)*/
 static void	update_env_var(t_dat *data, int i, char *assignment)
 {
 	char	*new_value;
@@ -33,6 +34,7 @@ static void	update_env_var(t_dat *data, int i, char *assignment)
 	data->env_str[i] = new_value;
 }
 
+/*add a new variable to the end of the env list*/
 static void	append_new_var(t_dat *data, char *assignment)
 {
 	char	**new_env;
@@ -60,7 +62,8 @@ static void	append_new_var(t_dat *data, char *assignment)
 	data->env_str = new_env;
 }
 
-/*scan through the env_str array*/
+/*scan through the env_str array. If existing is found, update it
+and return 1. If no existing found, return 0*/
 static int	find_existing_var(t_dat *data, char *assignment, size_t len)
 {
 	int		i;
