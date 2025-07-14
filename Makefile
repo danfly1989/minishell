@@ -4,14 +4,14 @@ LIBFT_DIR = libft
 LIBFT = $(LIBFT_DIR)/libft.a
 
 SRC_MINISHELL = \
-	src/main.c src/echo.c src/env.c src/exit.c src/pwd.c src/cd.c src/export.c src/unset.c
+	src/main.c src/echo.c src/env.c src/exit.c src/pwd.c src/cd.c src/export.c src/unset.c src/execute_pipeline.c
 
 OBJ_MINISHELL = $(SRC_MINISHELL:.c=.o)
 
 CC = cc
 CFLAGS = -g -Wall -Wextra -Werror -Iincludes -I$(LIBFT_DIR)
 LDFLAGS = -L$(LIBFT_DIR)
-LDLIBS = -lft
+LDLIBS = -lft -lreadline
 
 .PHONY: all clean fclean re debug check-deps
 

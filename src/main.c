@@ -1,92 +1,172 @@
-#include "minishell.h"
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: daflynn <daflynn@student.42berlin.de>      +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/04 17:03:00 by daflynn           #+#    #+#             */
+/*   Updated: 2025/07/14 20:35:16 by daflynn          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+#include "libft.h"
+#include <ctype.h>
+#include <readline/readline.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-char	**copy_env(char **envp)
+#define INITIAL_TOKENS_CAP 8
+#define INITIAL_TOKEN_SIZE 64
+
+// Append a char to a dynamic buffer (resizing if needed)
+void	append_char(char **buf, int *size, int *len, char c)
 {
-	int		i;
-	int		count;
-	char	**copy;
-
-	count = 0;
-	while (envp[count])
-		count++;
-	copy = malloc(sizeof(char *) * (count + 1));
-	if (!copy)
-		return (NULL);
-	i = 0;
-	while (i < count)
+	if (*len + 1 >= *size)
 	{
-		copy[i] = ft_strdup(envp[i]);
-		i++;
+		*size *= 2;
+		*buf = realloc(*buf, *size);
+		if (!*buf)
+		{
+			perror("realloc");
+			exit(1);
+		}
 	}
-	copy[i] = NULL;
-	return (copy);
+	(*buf)[(*len)++] = c;
+	(*buf)[*len] = '\0';
 }
 
-void	free_env(char **env)
+// Simple quote-aware lexer that splits input on spaces outside quotes
+// Returns a NULL-terminated array of tokens (caller must free)
+char	**lexer(const char *input)
 {
-	int	i;
+	int		in_single_quote;
+	int		tokens_cap;
+	char	**tokens;
+	int		buf_size;
+	int		buf_len;
+	char	*buf;
+	char	c;
+	int		in_double_quote;
+	int		tokens_count;
 
-	i = 0;
-	while (env[i])
-		free(env[i++]);
-	free(env);
+	in_single_quote = 0;
+	in_double_quote = 0;
+	tokens_cap = INITIAL_TOKENS_CAP;
+	tokens_count = 0;
+	in_single_quote = 0;
+	tokens_cap = INITIAL_TOKENS_CAP, tokens_count = 0;
+	tokens = malloc(sizeof(char *) * tokens_cap);
+	if (!tokens)
+	{
+		perror("malloc");
+		exit(1);
+	}
+	buf_size = INITIAL_TOKEN_SIZE;
+	buf_len = 0;
+	buf = malloc(buf_size);
+	if (!buf)
+	{
+		perror("malloc");
+		exit(1);
+	}
+	buf[0] = '\0';
+	for (int i = 0; input[i]; i++)
+	{
+		c = input[i];
+		if (c == '\'' && !in_double_quote)
+		{
+			in_single_quote = !in_single_quote;
+			// Do not include the quote char itself in token
+			continue ;
+		}
+		else if (c == '"' && !in_single_quote)
+		{
+			in_double_quote = !in_double_quote;
+			// Do not include the quote char itself in token
+			continue ;
+		}
+		else if ((c == ' ' || c == '\t') && !in_single_quote
+			&& !in_double_quote)
+		{
+			// End token if buffer not empty
+			if (buf_len > 0)
+			{
+				// Add token to tokens array
+				if (tokens_count + 1 >= tokens_cap)
+				{
+					tokens_cap *= 2;
+					tokens = realloc(tokens, sizeof(char *) * tokens_cap);
+					if (!tokens)
+					{
+						perror("realloc");
+						exit(1);
+					}
+				}
+				tokens[tokens_count++] = strdup(buf);
+				buf_len = 0;
+				buf[0] = '\0';
+			}
+			// else skip consecutive spaces
+			continue ;
+		}
+		else
+		{
+			append_char(&buf, &buf_size, &buf_len, c);
+		}
+	}
+	// Add last token if any
+	if (buf_len > 0)
+	{
+		if (tokens_count + 1 >= tokens_cap)
+		{
+			tokens_cap *= 2;
+			tokens = realloc(tokens, sizeof(char *) * tokens_cap);
+			if (!tokens)
+			{
+				perror("realloc");
+				exit(1);
+			}
+		}
+		tokens[tokens_count++] = strdup(buf);
+	}
+	free(buf);
+	tokens[tokens_count] = NULL;
+	return (tokens);
 }
 
-int	main(int argc, char **argv, char **envp)
+// Free tokens array
+void	free_tokens(char **tokens)
 {
-	char	**my_env;
-	t_dat	data;
+	for (int i = 0; tokens[i]; i++)
+		free(tokens[i]);
+	free(tokens);
+}
 
-	(void)argc;
-	(void)argv;
-	ft_printf("\n----------Main function launched-----------\n");
-	my_env = copy_env(envp);
-	if (!my_env)
-		return (1); // handling alloc failure
-	// using data struct to test copied env
-	data.env_str = my_env;
-	t_arg echo_cmd, arg1, arg2, arg3;
-	// set up linked list: echo -n Hello World
-	data.arg = &echo_cmd;
-	echo_cmd.value = "echo";
-	echo_cmd.next = &arg1;
-	arg1.value = "-n";
-	arg1.next = &arg2;
-	arg2.value = "Hello";
-	arg2.next = &arg3;
-	arg3.value = "World!";
-	arg3.next = NULL;
-	ft_echo(&data);
-	fflush(stdout);
-	ft_printf("\n ----end of echo test\n");
-	// end echo testing, begin env testing
-	ft_printf("\n--------begin env test-------");
-	ft_env(&data);
-	ft_printf("\n-------end of env test----------\n");
-	// pwd test. Could be void
-	ft_printf("\n--------begin pwd test-----------\n");
-	ft_pwd(&data);
-	ft_printf("---------end pwd test---------------\n");
-	// begin change directory test
-	ft_printf("\n-----------begin cd test-----------\n");
-	ft_cd(&data, "/this/is/a/completely/invalid/filepath");
-	ft_cd(&data, "/home/bocal");
-	ft_printf("-----------end cd test----------\n");
-	// begin the export test
-	ft_printf("\n ---------export test begins------------\n");
-	ft_export_with_update(&data, "FOO=bar");
-	ft_env(&data);
-	ft_printf("-------end of export test-------------");
-	// end the export test
-	// begin unset test
-	ft_printf("\n---------begin unset test------------\n");
-	ft_unset(&data, "FOO");
-	ft_env(&data);
-	ft_printf("\nEnd unset test\n");
-	// free the copy of env variables
-	free_env(data.env_str);
-	// exit test. Also could be void
-	ft_printf("\n--------running exit--------");
-	ft_exit(&data);
+// Test
+int	main(void)
+{
+	char	*input;
+	char	**tokens;
+
+	while (1)
+	{
+		input = readline("myshell");
+		if (!input)
+		{
+			printf("\n");
+			return (1);
+		}
+		// Strip newline
+		input[strcspn(input, "\n")] = 0;
+		tokens = lexer(input);
+		printf("Tokens:\n");
+		for (int i = 0; tokens[i]; i++)
+		{
+			printf("[%d]: %s\n", i, tokens[i]);
+		}
+		free_tokens(tokens);
+		free(input);
+	}
 	return (0);
 }

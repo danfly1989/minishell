@@ -87,6 +87,6 @@ void				ft_export_simple(t_dat *data, char *assignment);
 void				ft_export_with_update(t_dat *data, char *assignment);
 void				ft_unset(t_dat *data, char *var_name);
 
-// void version of exit deleted
-
+// piping
+int					execute_pipeline(char ***commands);
 #endif
